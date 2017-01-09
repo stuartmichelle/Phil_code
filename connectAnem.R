@@ -3,7 +3,7 @@
 # connect to the database
 # open the laboratory database to retrieve sample info
 suppressMessages(library(dplyr))
-leyte <- src_mysql(dbname = "Leyte", host = "amphiprion.deenr.rutgers.edu", user = "michelles", password = "larvae168", port = 3306, create = F)
+leyte <- src_mysql(dbname = "Leyte", default.file = path.expand("~/myconfig.cnf"), port = 3306, create = F, host = NULL, user = NULL, password = NULL)
 
 # pull in all of the anemone data
 anem <- leyte %>% tbl("anemones") %>% collect()
@@ -20,7 +20,7 @@ for(i in 1:nrow(replace)){
 
 # add this data to the database
 library(RMySQL)
-leyte <- dbConnect(MySQL(), host="amphiprion.deenr.rutgers.edu", user="michelles", password="larvae168", dbname="Leyte", port=3306)
+leyte <- dbConnect(MySQL(), dbname="Leyte", default.file = path.expand("~/myconfig.cnf"), port = 3306, create = F, host = NULL, user = NULL, password = NULL)
 
 # Send data to database
 dbWriteTable(leyte,"anemones",data.frame(anem), row.names = FALSE, overwrite = TRUE)
