@@ -9,6 +9,9 @@ leyte <- conleyte()
 # pull in all of the anemone data
 anem <- leyte %>% tbl("anemones") %>% collect()
 
+# make a backup of the table in case anything goes wrong
+write.csv(anem, file = paste(Sys.time(), "_anembackup.csv", sep = ""))
+
 
 # find all of the anemones that have a value in the oldAnemID column
 replace <- anem %>% filter(!is.na(old_anem_id))
