@@ -31,11 +31,12 @@ for(i in 1:nrow(multi)){
   
 }
 
+rm(leyte)
 # add this data to the database
 leytes <- writeleyte()
 
 # Send data to database
-dbWriteTable(leyte, name = "anemones", value = anem, row.names = FALSE, overwrite = TRUE)
+RMySQL::dbWriteTable(leytes, name = "anemones", value = data.frame(anem), row.names = FALSE, overwrite = TRUE)
 
 
 
