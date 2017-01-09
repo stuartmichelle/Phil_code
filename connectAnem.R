@@ -13,10 +13,17 @@ anem <- leyte %>% tbl("anemones") %>% collect()
 write.csv(anem, file = paste(Sys.time(), "_anembackup.csv", sep = ""))
 
 # find all of the anemones that have a value in the oldAnemID column and remove duplicates
-multi <- anem %>% filter(!is.na(old_anem_id)) %>% select(old_anem_id, anem_id, anemobs) %>% distinct()
+multi <- anem %>% filter(!is.na(old_anem_id) & is.na(anemobs)) %>% select(old_anem_id, anem_id, anemobs) %>% distinct()
 
-# assign an observation to new pairs that have not been observed before
-multi$anemobs <- 1:nrow(multi)
+# do these anemones have an observation number from a different row?
+previous <- data.frame()
+
+for(i in 1:nrow(multi)){
+  previous <- rbind(previous, anem[which(anem$anem_id == multi$anem_id[i]), ])
+    previous <- rbind(previous, anem[which(anem$anem_id == multi$old_anem_id[i]), ])
+}
+
+###################################### Still a work in progress #####################################
 
 # connect repeat anems 
 for (i in 1:nrow(multi)) {

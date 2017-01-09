@@ -12,8 +12,8 @@ anem <- leyte %>% tbl("anemones") %>% collect()
 # make a backup of the table in case anything goes wrong
 write.csv(anem, file = paste(Sys.time(), "_anembackup.csv", sep = ""))
 
-# find all of the anemones that have a value in the oldAnemID column and remove duplicates
-multi <- anem %>% filter(!is.na(old_anem_id)) %>% select(old_anem_id, anem_id, anemobs) %>% distinct()
+# find all of the anemones that have a value in the oldAnemID column, no anemobs, and remove duplicates
+multi <- anem %>% filter(!is.na(old_anem_id) & is.na(anemobs)) %>% select(old_anem_id, anem_id, anemobs) %>% distinct()
 
 # assign an observation to new pairs that have not been observed before
 multi$anemobs <- 1:nrow(multi)
