@@ -15,15 +15,25 @@ write.csv(anem, file = paste(Sys.time(), "_anembackup.csv", sep = ""))
 # find all of the anemones that have a value in the oldAnemID column and remove duplicates
 multi <- anem %>% filter(!is.na(old_anem_id) & is.na(anemobs)) %>% select(old_anem_id, anem_id, anemobs) %>% distinct()
 
-# do these anemones have an observation number from a different row?
-previous <- data.frame()
+# add all of the repeats for the same anem_id number
+dups <- anem[!is.na(anem$anem_id), ]
+dups <- dups[duplicated(dups$anem_id), ]
+dups <- dups[, c("old_anem_id", "anemobs", "anem_id")]
 
-for(i in 1:nrow(multi)){
-  previous <- rbind(previous, anem[which(anem$anem_id == multi$anem_id[i]), ])
-    previous <- rbind(previous, anem[which(anem$anem_id == multi$old_anem_id[i]), ])
+for (i in 1:nrow(dups)){
+  X <- anem[which(anem$anem_id == dups$anem_id[i]), c("anemobs", "anem_id", "old_anem_id")]
+  multi <- rbind(multi, X)
 }
 
-###################################### Still a work in progress #####################################
+# remove duplicates
+multi <- distinct(multi)
+
+# remove samples with observations
+multi <- multi[is.na(multi$anemobs), ]
+
+# find the next obs number
+n <- max(anem$anemobs, na.rm = T)
+multi$anemobs <- (n+1):(n+nrow(multi))
 
 # connect repeat anems 
 for (i in 1:nrow(multi)) {
@@ -33,8 +43,8 @@ for (i in 1:nrow(multi)) {
 # incorporate this into the anem table
 # test i <- 1
 for(i in 1:nrow(multi)){
-  anem$anemobs[which(anem$anem_id == multi$anem_id[i])] <- multi$anemobs[i]
-  anem$anemobs[which(anem$anem_id == multi$old_anem_id[i])] <- multi$anemobs[i]
+      anem$anemobs[which(anem$anem_id == multi$anem_id[i])] <- multi$anemobs[i]
+    anem$anemobs[which(anem$anem_id == multi$old_anem_id[i])] <- multi$anemobs[i]    
   
 }
 
@@ -42,10 +52,12 @@ for(i in 1:nrow(multi)){
 leytes <- writeleyte()
 
 # Send data to database
-dbWriteTable(leyte, name = "anemones", value = anem, row.names = FALSE, overwrite = TRUE)
+library(RMySQL)
+leytes <- dbConnect(MySQL(), dbname="Leyte", default.file = path.expand("~/myconfig.cnf"), port = 3306, create = F, host = NULL, user = NULL, password = NULL)
+
+dbWriteTable(leytes, "anemones", data.frame(anem), row.names = F, overwrite = T)
 
 
-
-dbDisconnect(leyte)
+dbDisconnect(leytes)
 rm(leytes)
 
