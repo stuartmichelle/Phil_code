@@ -7,21 +7,17 @@ source("conleyte.R")
 leyte <- conleyte()
 
 # for all of the dives from 2015_05 season
-c1 <- leyte %>% tbl("diveinfo")  %>% filter(date > "2015-04-01" & date < "2016-01-01")  %>% select(id, date)
-
-# for all anem obs from those dives
-c2 <- leyte %>% tbl("anemones") 
-c3 <- left_join(c1, c2, by = c("id" = "dive_table_id"))  %>% select(anem_table_id, ObsTime, date) %>% collect()
-
-# find all fish from that season
-c4 <- leyte %>% tbl("clownfish")
-fish <- left_join(c3, c4, by = "anem_table_id", copy = T)  %>% select(ObsTime, sample_id, date)
-
-# get rid of non-fish
-fish <- fish[!is.na(fish$sample_id), ]
+dive <- leyte %>% tbl("diveinfo")  %>% filter(date > "2015-04-01" & date < "2016-01-01")  %>% select(id, date) %>% collect()
+anem <- leyte %>% tbl("anemones") %>% filter(dive_table_id %in% dive$id) %>% select(anem_table_id, ObsTime, dive_table_id) %>% collect()
+anem <- left_join(anem, dive, by = c("dive_table_id" = "id"))
+rm(dive)
+fish <- leyte %>% tbl("clownfish") %>% filter(anem_table_id %in% anem$anem_table_id & !is.na(sample_id)) %>% select(anem_table_id, sample_id) %>% collect()
+fish <- left_join(fish, anem, by = "anem_table_id")
 
 # put in order of collection
+fish <- fish[ , c("sample_id", "date", "ObsTime")]
 fish <- fish %>% arrange(date, ObsTime)
+
 
 # give them a collection number
 fish$collection_number <- 1:nrow(fish)
