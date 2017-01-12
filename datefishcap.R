@@ -7,4 +7,5 @@ datefishcap <- function(x){
   anem <- leyte %>% tbl("anemones") %>% filter(anem_table_id == fish$anem_table_id) %>% select(dive_table_id) %>% collect()
   day <- leyte %>% tbl("diveinfo") %>% filter(id == anem$dive_table_id) %>% select(date) %>% collect()
   return(day)
+  print(day$date)
 }
