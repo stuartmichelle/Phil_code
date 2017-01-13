@@ -3,6 +3,7 @@
 # number.
 
 source("conleyte.R")
+source("../../myRcode/Laboratory/R/conlabor.R")
 
 leyte <- conleyte()
 
@@ -86,3 +87,75 @@ d1 <- join %>% filter(date.x == "2015-05-28" & ObsTime < "12:00:00")
 d2 <- join %>% filter(date.x == "2015-05-28" & ObsTime > "12:00:00")
 d3 <- join %>% filter(date.x == "2015-05-29" & ObsTime < "12:30:00")
 d4 <- join %>% filter(date.x == "2015-05-29" & ObsTime > "12:30:00")
+
+# create an extraction order column
+labor <- conlabor()
+extract <- labor %>% tbl("extraction") %>% filter(sample_id %in% fish$sample_id) %>% select(sample_id, date, plate, well) %>% collect() 
+extract$Row <- substr(extract$well, 1, 1)
+extract$Col <- substr(extract$well, 2, 3)
+extract$Col <- as.integer(extract$Col)
+extract <- arrange(extract, date, plate, Col, Row)
+extract$extract <- 1:nrow(extract)
+
+# simplify table
+extract <- extract[ , c("sample_id", "extract")]
+
+fish <- full_join(fish, extract, by = "sample_id")
+
+# find current extract box order
+fish <- arrange(fish, extract)
+fish[630:648, ] <- NA
+fish$ebox <- NA
+for (i in 1:8){
+  fish$ebox[((81*(i-1))+1):(81*i)] <- i
+}
+
+# find coll box number
+fish <- arrange(fish, collection_number)
+fish$cbox <- NA
+for (i in 1:8){
+  fish$cbox[(81*(i-1)+1):(81*i)] <- i
+}
+
+# create box well number
+fish$boxwell <- NA
+fish$boxwell[which(fish$cbox == 1)] <- 1:81
+# box4_2015 <- subset(fish, fish$cbox == 4)
+# write.csv(box4_2015, file = "../Surveys_2015_05/box4_2015.csv")
+
+fish$boxwell[which(fish$cbox == 2)] <- 1:81
+# box4_2015 <- subset(fish, fish$cbox == 4)
+# write.csv(box4_2015, file = "../Surveys_2015_05/box4_2015.csv")
+
+
+fish$boxwell[which(fish$cbox == 3)] <- 1:81
+# box4_2015 <- subset(fish, fish$cbox == 4)
+# write.csv(box4_2015, file = "../Surveys_2015_05/box4_2015.csv")
+
+fish$boxwell[which(fish$cbox == 4)] <- 1:81
+box4_2015 <- subset(fish, fish$cbox == 4)
+write.csv(box4_2015, file = "../Surveys_2015_05/box4_2015.csv")
+
+fish$boxwell[which(fish$cbox == 5)] <- 1:81
+box5_2015 <- subset(fish, fish$cbox == 5)
+write.csv(box5_2015, file = "../Surveys_2015_05/box5_2015.csv")
+
+fish$boxwell[which(fish$cbox == 6)] <- 1:81
+box6_2015 <- subset(fish, fish$cbox == 6)
+write.csv(box6_2015, file = "../Surveys_2015_05/box6_2015.csv")
+
+
+fish$boxwell[which(fish$cbox == 7)] <- 1:81
+box7_2015 <- subset(fish, fish$cbox == 7)
+write.csv(box7_2015, file = "../Surveys_2015_05/box7_2015.csv")
+
+
+fish$boxwell[which(fish$cbox == 8)] <- 1:81
+box8_2015 <- subset(fish, fish$cbox == 8)
+write.csv(box8_2015, file = "../Surveys_2015_05/box8_2015.csv")
+
+mystery <- subset(pit, date == "2015-06-13")
+
+
+
+

@@ -566,5 +566,10 @@ for (i in 1:nrow(june14scan)){
 
 suppressWarnings(datefishcap("APCL15_402726"))
 
+##################### tag vs. identity clarification #####################
+
+# Scenario A - tag was not used and all 
+
+
 
 
