@@ -14,15 +14,18 @@ samples <- left_join(samples, fish, by = "anem_table_id")
 latlong <- leyte %>% tbl("GPX") %>% filter(year == 2012) %>% collect()
 latlong$date <- paste(latlong$year, formatC(latlong$month, digits = 1, flag = 0), formatC(latlong$day, digits = 1, flag = 0), sep = "-")
 
-latlong$test <- latlong$hour + 8
+latlong$hour <- latlong$hour + 8
 
-latlong$time <- paste(latlong$date, " ",latlong$test, ":", latlong$min, ":00", sep = "")
+latlong$hour[nchar(latlong$hour) < 2] <- formatC(latlong$hour[nchar(latlong$hour) < 2], digits = 1, flag = 0)
+
+
+latlong$time <- paste(latlong$date, " ",latlong$hour, ":", formatC(latlong$min, digits = 1, flag = 0), ":00", sep = "")
 samples$time <- paste(samples$date, " ", samples$ObsTime, sep = "")
 
 samples <- left_join(samples, latlong, by = "time")
 samples <- samples[ , c("sample_id", "lat", "long")]
 samples <- samples[!is.na(samples$sample_id), ]
-samples <- distinct(samples, sample_id)
+samples <- distinct(samples, sample_id, .keep_all = T)
 samples <- arrange(samples, sample_id)
 twelve <- samples[!is.na(samples$lat), ]
 write.csv(twelve, file = "map_2012.csv") # import into QGIS
@@ -37,15 +40,19 @@ samples <- left_join(samples, fish, by = "anem_table_id")
 latlong <- leyte %>% tbl("GPX") %>% filter(year == 2013) %>% collect()
 latlong$date <- paste(latlong$year, formatC(latlong$month, digits = 1, flag = 0), formatC(latlong$day, digits = 1, flag = 0), sep = "-")
 
-latlong$test <- latlong$hour + 8
+latlong$hour <- latlong$hour + 8
 
-latlong$time <- paste(latlong$date, " ",latlong$test, ":", latlong$min, ":00", sep = "")
+latlong$hour[nchar(latlong$hour) < 2] <- formatC(latlong$hour[nchar(latlong$hour) < 2], digits = 1, flag = 0)
+
+
+latlong$time <- paste(latlong$date, " ",latlong$hour, ":", formatC(latlong$min, digits = 1, flag = 0), ":00", sep = "")
 samples$time <- paste(samples$date, " ", samples$ObsTime, sep = "")
+samples$time[substr(samples$time, 18, 18) != "0"] <- paste(substr(samples$time[substr(samples$time, 18, 18) != "0"], 1, 17), "00", sep = "")
 
 samples <- left_join(samples, latlong, by = "time")
 samples <- samples[ , c("sample_id", "lat", "long")]
 samples <- samples[!is.na(samples$sample_id), ]
-samples <- distinct(samples, sample_id)
+samples <- distinct(samples, sample_id, .keep_all = T)
 samples <- arrange(samples, sample_id)
 thirteen <- samples[!is.na(samples$lat), ]
 write.csv(thirteen, file = "map_2013.csv") # import into QGIS
@@ -59,15 +66,18 @@ samples <- left_join(samples, fish, by = "anem_table_id")
 latlong <- leyte %>% tbl("GPX") %>% filter(year == 2014) %>% collect()
 latlong$date <- paste(latlong$year, formatC(latlong$month, digits = 1, flag = 0), formatC(latlong$day, digits = 1, flag = 0), sep = "-")
 
-latlong$test <- latlong$hour + 8
+latlong$hour <- latlong$hour + 8
 
-latlong$time <- paste(latlong$date, " ",latlong$test, ":", latlong$min, ":00", sep = "")
+latlong$hour[nchar(latlong$hour) < 2] <- formatC(latlong$hour[nchar(latlong$hour) < 2], digits = 1, flag = 0)
+
+
+latlong$time <- paste(latlong$date, " ",latlong$hour, ":", formatC(latlong$min, digits = 1, flag = 0), ":00", sep = "")
 samples$time <- paste(samples$date, " ", samples$ObsTime, sep = "")
 
 samples <- left_join(samples, latlong, by = "time")
 samples <- samples[ , c("sample_id", "lat", "long")]
 samples <- samples[!is.na(samples$sample_id), ]
-samples <- distinct(samples, sample_id)
+samples <- distinct(samples, sample_id, .keep_all = T)
 samples <- arrange(samples, sample_id)
 fourteen <- samples[!is.na(samples$lat), ]
 write.csv(fourteen, file = "map_2014.csv") # import into QGIS
@@ -81,15 +91,18 @@ samples <- left_join(samples, fish, by = "anem_table_id")
 latlong <- leyte %>% tbl("GPX") %>% filter(year == 2015) %>% collect()
 latlong$date <- paste(latlong$year, formatC(latlong$month, digits = 1, flag = 0), formatC(latlong$day, digits = 1, flag = 0), sep = "-")
 
-latlong$test <- latlong$hour + 8
+latlong$hour <- latlong$hour + 8
 
-latlong$time <- paste(latlong$date, " ",latlong$test, ":", latlong$min, ":00", sep = "")
+latlong$hour[nchar(latlong$hour) < 2] <- formatC(latlong$hour[nchar(latlong$hour) < 2], digits = 1, flag = 0)
+
+
+latlong$time <- paste(latlong$date, " ",latlong$hour, ":", formatC(latlong$min, digits = 1, flag = 0), ":00", sep = "")
 samples$time <- paste(samples$date, " ", samples$ObsTime, sep = "")
 
 samples <- left_join(samples, latlong, by = "time")
 samples <- samples[ , c("sample_id", "lat", "long")]
 samples <- samples[!is.na(samples$sample_id), ]
-samples <- distinct(samples, sample_id)
+samples <- distinct(samples, sample_id, .keep_all = T)
 samples <- arrange(samples, sample_id)
 fifteen <- samples[!is.na(samples$lat), ]
 write.csv(fifteen, file = "map_2015.csv") # import into QGIS
@@ -103,15 +116,18 @@ samples <- left_join(samples, fish, by = "anem_table_id")
 latlong <- leyte %>% tbl("GPX") %>% filter(year == 2016) %>% collect()
 latlong$date <- paste(latlong$year, formatC(latlong$month, digits = 1, flag = 0), formatC(latlong$day, digits = 1, flag = 0), sep = "-")
 
-latlong$test <- latlong$hour + 8
+latlong$hour <- latlong$hour + 8
 
-latlong$time <- paste(latlong$date, " ",latlong$test, ":", latlong$min, ":00", sep = "")
+latlong$hour[nchar(latlong$hour) < 2] <- formatC(latlong$hour[nchar(latlong$hour) < 2], digits = 1, flag = 0)
+
+
+latlong$time <- paste(latlong$date, " ",latlong$hour, ":", formatC(latlong$min, digits = 1, flag = 0), ":00", sep = "")
 samples$time <- paste(samples$date, " ", samples$ObsTime, sep = "")
 
 samples <- left_join(samples, latlong, by = "time")
 samples <- samples[ , c("sample_id", "lat", "long")]
 samples <- samples[!is.na(samples$sample_id), ]
-samples <- distinct(samples, sample_id)
+samples <- distinct(samples, sample_id, .keep_all = T)
 samples <- arrange(samples, sample_id)
 sixteen <- samples[!is.na(samples$lat), ]
-write.csv(sixteen, file = "map_2015.csv") # import into QGIS
+write.csv(sixteen, file = "map_2016.csv") # import into QGIS
