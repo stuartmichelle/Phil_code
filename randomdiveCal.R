@@ -6,15 +6,15 @@
 start_date <- "02/15/2017"
 end_date <- "03/29/2017"
 no_dive_dates <- NULL # days off ex: "06/17/2016"
-Palanas <- rep("Palanas", 6)
-Wangag <- rep("Wangag", 6)
+Palanas <- rep("Palanas", 15)
+Wangag <- rep("Wangag", 10)
 Magbangon <- rep("Magbangon", 6)
 TamakinDacot <- rep("Tamakin Dacot", 2)
 Haina <- rep("Haina", 2)
-SitioBaybayon <- rep("Sitio Baybayon", 6)
-# Transects <- rep("Transects", 20) # this is a hold all for the remainder of dives, includes extra cushion days
+SitioBaybayon <- rep("Sitio Baybayon", 7)
+Transects <- rep("Transects", 20) # this is a hold all for the remainder of dives, includes extra cushion days
 
-sites <- c("Data Logger",Transects, Palanas, Wangag, Magbangon, "Cabatuon", "Caridad Cemetary", "Caridad", "Hicgop", "Hicgop South", "Elementary School", "Sitio Tugas", "Sitio Lonas", "San Agustin", "Poroc San Flower", "Poroc Rose", "Visca", "Gabas", TamakinDacot, Haina, SitioBaybayon)
+sitesa <- c("Data Logger",Transects, Palanas, Wangag, Magbangon, "Cabatuon", "Caridad Cemetary", "Caridad", "Hicgop", "Hicgop South", "Elementary School", "Sitio Tugas", "Sitio Lonas", "San Agustin", "Poroc San Flower", "Poroc Rose", "Visca", "Gabas", TamakinDacot, Haina, SitioBaybayon)
 
 dts <- seq.dates(start_date, end_date) # a list of all the dates from start to end
 weekdts <- weekdays(dts) # converts those dates to days of the week, Tue, Wed, etc.
@@ -45,7 +45,7 @@ for(i in 1:mult){
   mat$"Start Date" <- dates
   mat$"End Date" <- dates
   mat$"All Day Event" <- "TRUE"
-  mat$Description <- "Philippines Dive Schedule"
+  mat$Description <- "Breeding Dive Schedule"
   mat$Private <- "FALSE"
   # start_times <- c("12:15:00 PM","2:30:00 PM") # all day event
   # end_times <- c("1:15:00 PM","3:20:00 PM") # all day event
@@ -60,5 +60,5 @@ for(i in 1:mult){
   #   temp<-mat[mat$Subject==sites[i],]
   #   write.csv(temp,file=filename,quote=FALSE,row.names=FALSE)
   # }
-  filename <- "LeyteDiveSchedule.csv"
+  filename <- "BreedingDiveSchedule.csv"
   write.csv(mat, file=filename, quote=FALSE, row.names=FALSE)
