@@ -5,6 +5,132 @@ source("conleyte.R")
 leyte <- conleyte()
 
 
+# May30 -------------------------------------------------------------------
+
+# tags scanned 
+X <- leyte %>% tbl("pitscan")  %>% filter(date == "2015-05-30") %>% collect()
+
+# reduce tagid to 6 digit number
+X$tagid <- substr(X$tag, 7, 12)
+
+# simplify table
+X$city <- NULL
+X$tag <- NULL
+may30scan <- X
+may30scan <- arrange(may30scan, time)
+
+# put into matrix
+rows <- data.frame( Row = rep(LETTERS[1:10], 10), Col = unlist(lapply(1:10, rep, 10)))
+rows <- arrange(rows, Row)
+rows <- rows[1:nrow(X), ]
+simple <- cbind(may30scan, rows)
+simple <- simple[, c("Row", "Col", "tagid")]
+platemap1 <- as.matrix(reshape2::acast(simple,simple[,1] ~ simple[,2]))
+
+
+# fish tagged 
+suppressWarnings(dive <- leyte %>% tbl("diveinfo") %>% filter(date == "2015-05-30") %>% collect())
+anem <- leyte %>% tbl("anemones") %>% filter(dive_table_id %in% dive$id) %>% collect() 
+fish <- leyte  %>% tbl("clownfish") %>% filter(anem_table_id %in% anem$anem_table_id) %>% collect()
+fish$tagid <- as.character(fish$tagid)
+fish <- fish[!is.na(fish$tagid), ]
+
+# simplify fish tagid
+fish$tagid <- substr(fish$tagid, 10, 15)
+
+# simplify table 
+fish <- fish[ , c("sample_id", "tagid")]
+
+# join fish and tag tables
+tag <- full_join(X, fish, by = "tagid")
+
+may30 <- tag
+may30 <- dplyr::arrange(may30, time)
+
+# it is possible that all of the tags after 405807 are off by 1 (that 405807 is actually 403740 and so on)  ### no, they aren't  or these identity issues we are having would be off by just one instead of by days (if the fish on the map nearest the mismatch is considered)
+
+may30$altid <- NA
+for (i in 1:nrow(may30)){
+  may30$altid[i] <- may30$tagid[i+1]
+}
+may30$altid[1:10] <- NA
+
+unused <- may30[is.na(may30$sample_id), ]
+may30 <- may30[!is.na(may30$sample_id), ]
+
+# remove used tags from plate
+for (i in 1:nrow(simple)){
+  if(simple$tagid[i] %in% may30$tagid){
+    simple$tagid[i] <- NA
+  }
+}
+platemap2 <- as.matrix(reshape2::acast(simple,simple[,1] ~ simple[,2]))
+
+
+
+
+
+# May31 -------------------------------------------------------------------
+
+# tags scanned on 6/1/2015
+X <- leyte %>% tbl("pitscan")  %>% filter(date == "2015-05-31") %>% collect()
+
+# reduce tagid to 6 digit number
+X$tagid <- substr(X$tag, 7, 12)
+
+# simplify table
+X$city <- NULL
+X$tag <- NULL
+may31scan <- X
+may31scan <- arrange(may31scan, time)
+
+# put into matrix
+rows <- data.frame( Row = rep(LETTERS[1:10], 10), Col = unlist(lapply(1:10, rep, 10)))
+rows <- arrange(rows, Row)
+rows <- rows[1:nrow(X), ]
+simple <- cbind(may31scan, rows)
+simple <- simple[, c("Row", "Col", "tagid")]
+platemap1 <- as.matrix(reshape2::acast(simple,simple[,1] ~ simple[,2]))
+
+
+# fish tagged on 5/31/2015
+suppressWarnings(dive <- leyte %>% tbl("diveinfo") %>% filter(date == "2015-05-31") %>% collect())
+anem <- leyte %>% tbl("anemones") %>% filter(dive_table_id %in% dive$id) %>% collect() 
+fish <- leyte  %>% tbl("clownfish") %>% filter(anem_table_id %in% anem$anem_table_id) %>% collect()
+fish$tagid <- as.character(fish$tagid)
+fish <- fish[!is.na(fish$tagid), ]
+
+# simplify fish tagid
+fish$tagid <- substr(fish$tagid, 10, 15)
+
+# simplify table 
+fish <- fish[ , c("sample_id", "tagid")]
+
+# join fish and tag tables
+tag <- full_join(X, fish, by = "tagid")
+
+may31 <- tag
+may31 <- dplyr::arrange(may31, time)
+
+# it is possible that all of the tags after 405807 are off by 1 (that 405807 is actually 403740 and so on)
+may31$altid <- NA
+for (i in 1:nrow(may31)){
+  may31$altid[i] <- may31$tagid[i+1]
+}
+may31$altid[1:10] <- NA
+
+unused <- may31[is.na(may31$sample_id), ]
+may31 <- may31[!is.na(may31$sample_id), ]
+
+# remove used tags from plate
+for (i in 1:nrow(simple)){
+  if(simple$tagid[i] %in% may31$tagid){
+    simple$tagid[i] <- NA
+  }
+}
+platemap2 <- as.matrix(reshape2::acast(simple,simple[,1] ~ simple[,2]))
+
+
 # June1 -------------------------------------------------------------------
 
 # tags scanned on 6/1/2015
