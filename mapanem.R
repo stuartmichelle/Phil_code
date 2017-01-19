@@ -52,7 +52,7 @@ anem$dive_table_id <- NULL
 out <- anem[,c('lat', 'lon', 'date', "name", "anem_id", "anemobs")]
 
 # for samples that don't have an anemobs, replace with anem_id
-out$anemobs[is.na(anem$anemobs)] <- out$anem_id[is.na(anem$anemobs)]
+out$anemobs[is.na(anem$anemobs)] <- paste("#", out$anem_id[is.na(anem$anemobs)], sep = "")
 
 write.table(out, file=paste(Sys.Date(), "GPSSurvey_anemlatlong_", year, "_forQGIS.csv", sep = ""), col.names=TRUE, sep=',', row.names=FALSE, quote=TRUE)
 
@@ -104,7 +104,7 @@ anem$dive_table_id <- NULL
 out <- anem[,c('lat', 'lon', 'date', "name", "anem_id", "anemobs")]
 
 # for samples that don't have an anemobs, replace with anem_id
-out$anemobs[is.na(anem$anemobs)] <- out$anem_id[is.na(anem$anemobs)]
+out$anemobs[is.na(anem$anemobs)] <- paste("#", out$anem_id[is.na(anem$anemobs)], sep = "")
 
 write.table(out, file=paste(Sys.Date(), "GPSSurvey_anemlatlong_", year, "_05_forQGIS.csv", sep = ""), col.names=TRUE, sep=',', row.names=FALSE, quote=TRUE)
 
@@ -210,7 +210,7 @@ anem$dive_table_id <- NULL
 out <- anem[,c('lat', 'lon', 'date', "name", "anem_id", "anemobs")]
 
 # for samples that don't have an anemobs, replace with anem_id
-out$anemobs[is.na(anem$anemobs)] <- out$anem_id[is.na(anem$anemobs)]
+out$anemobs[is.na(anem$anemobs)] <- paste("#", out$anem_id[is.na(anem$anemobs)], sep = "")
 
 # remove lines without lat lon
 out <- out[!is.na(out$lat), ]
@@ -264,7 +264,7 @@ anem$dive_table_id <- NULL
 out <- anem[,c('lat', 'lon', 'date', "name", "anem_id", "anemobs")]
 
 # for samples that don't have an anemobs, replace with anem_id
-out$anemobs[is.na(anem$anemobs)] <- out$anem_id[is.na(anem$anemobs)]
+out$anemobs[is.na(anem$anemobs)] <- paste("#", out$anem_id[is.na(anem$anemobs)], sep = "")
 
 # remove lines without lat lon
 out <- out[!is.na(out$lat), ]
@@ -322,7 +322,7 @@ anem$dive_table_id <- NULL
 out <- anem[,c('lat', 'lon', 'date', "name", "anem_id", "anemobs")]
 
 # for samples that don't have an anemobs, replace with anem_id
-out$anemobs[is.na(anem$anemobs)] <- out$anem_id[is.na(anem$anemobs)]
+out$anemobs[is.na(anem$anemobs)] <- paste("#", out$anem_id[is.na(anem$anemobs)], sep = "")
 
 # remove lines without lat lon
 out <- out[!is.na(out$lat), ]
