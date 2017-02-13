@@ -5,7 +5,7 @@ library(fishmethods)
 # try it with our data
 source("conleyte.R")
 leyte <- conleyte()
-dive <- leyte %>% tbl("diveinfo") %>% select(id, date) %>% collect()
+dive <- leyte %>% tbl("diveinfo") %>% select(id, date, name) %>% collect()
 anem <- leyte %>% tbl("anemones") %>% select(dive_table_id, anem_table_id) %>% collect()
 anem <- left_join(anem, dive, by = c("dive_table_id" = "id"))
 rm(dive)
@@ -22,12 +22,17 @@ fish$capid[fish$capid == 1] <- NA
 fish$capid[fish$capid == 9] <- NA
 fish <- fish[!is.na(fish$capid), ]
 
+# remove the elementary school fish from the analysis because it was caught twice in the same day
+fish <- fish[fish$name != "Elementary School", ]
+
 # populate an L1 and L2, and TAL column for recaptured fish
 recapture <- data.frame()
 for(i in 1:nrow(fish)){
   X <- fish[which(fish$capid == fish$capid[i]), ]
   X$L1 <- min(X$size)
   X$L2 <- max(X$size)
+  X$T1 <- min(X$date)
+  X$T2 <- max(X$date)
   X$tal <- max(X$date) - min(X$date)
   recapture <- rbind(recapture, X[1,])
 }
@@ -38,11 +43,92 @@ recapture <- dplyr::distinct(recapture)
 # convert tal from days to portions of year
 recapture$tal <- recapture$tal/365
 
-growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.27, lowerK = 0.01, upperK = 1),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
+grow <- growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.27, lowerK = 0.01, upperK = 1),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
   sigma2_Linf=list(startsigma2=100,lowersigma2=0.1,uppersigma2=100000),	
   sigma2_K=list(startsigma2=0.5,lowersigma2=1e-8,uppersigma2=10))
 
+# now plot it 
 
+# rename columns for growthTraject function
+# names(recapture) <- c("capid", "size", "sample_id", "date", "name", "lentag", "lenrec", "timelib")
+
+# growthTraject(0.19,97.5,lentag=temp$L1, lenrec=temp$L2,timelib=c(temp$T2-temp$T1)) # had to remove the elementary school fish in order to get this to work without the timelib is numeric and not >0
+
+# growthTraject(grow$results[1,3], grow$results[1,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, , main = "Growth Trajectories and Fitted Curve", cex.lab=1.5, cex.axis=1.5, cex.main=1,xlab="Relative age, yr", ylab="Length, cm",xlim=NULL, ylim=NULL,ltytraject=1, lwdtraject=1,coltraject=1, ltyvonB=1, lwdvonB=2, colvonB="red",  returnvec=FALSE, returnlimits=FALSE, warn=TRUE)
+
+# Error in seq.int(from, to, length.out = n) : 'to' must be finite
+# In addition: Warning message:
+#   In log(1 - lentag/Linf) : NaNs produced
+
+
+growthTraject(grow$results[1,3], grow$results[1,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Faber Growth trajectories and fitted curve, K=1.13, Linf = 10.48")
+# Error in plot.window(...) : need finite 'xlim' values
+# In addition: Warning message:
+#   In log(1 - lentag/Linf) : NaNs produced
+
+### Because Faber has the smallest AIC, change Linf to 11.1 and it will plot...
+growthTraject(grow$results[1,3], 11.1, lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Faber Growth trajectories and fitted curve, K=1.13, Linf = 11.1")
+
+
+growthTraject(grow$results[2,3], grow$results[2,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Kirkwood & Somers Growth trajectories and fitted curve, K=46.74, Linf=9.2")
+# Error in plot.window(...) : need finite 'xlim' values
+# In addition: Warning message:
+#   In log(1 - lentag/Linf) : NaNs produced
+
+growthTraject(grow$results[3,3], grow$results[3,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Kirkwood & Somers Growth with ME trajectories and fitted curve, K=0.759, Linf=11.097")
+
+growthTraject(grow$results[4,3], grow$results[4,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Kirkwood & Somers Growth with ME & RLE trajectories and fitted curve, K=0.759, Linf=11.097")
+
+growthTraject(grow$results[5,3], grow$results[5,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Sainsbury trajectories and fitted curve, K=24.95, Linf=9.81")
+# Error in plot.window(...) : need finite 'xlim' values
+# In addition: Warning message:
+#   In log(1 - lentag/Linf) : NaNs produced
+
+growthTraject(grow$results[6,3], grow$results[6,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Sainsbury with ME trajectories and fitted curve, K=1.38, Linf=18.21")
+
+growthTraject(grow$results[7,3], grow$results[7,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Sainsbury with ME & RLE trajectories and fitted curve, K=1.38, Linf=18.21")
+
+
+
+
+# By site -----------------------------------------------------------------
+
+
+# examine growth rate by site
+cab <- subset(fish, name == "Cabatuan")
+elem <- subset(fish, name == "Elementary School")
+haina <- subset(fish, name == "Haina")
+mag <- subset(fish, name == "Magbangon")
+pal <- subset(fish, name == "Palanas")
+rose <- subset(fish, name == "Poroc Rose")
+flower <- subset(fish, name == "Poroc San Flower")
+sitio <- subset(fish, name == "Sitio Baybayon")
+tamakin <- subset(fish, name == "Tamakin Dacot")
+visca <- subset(fish, name == "Visca")
+wang <- subset(fish, name == "Wangag")
+
+# make a list of the site subsets just made
+sites <- list(cab, flower, haina, mag, pal, rose, sitio, tamakin, visca, wang)
+for (j in 1:length(sites)){
+  recapture <- data.frame()
+  Y <- as.data.frame(sites[j])
+  for(i in 1:nrow(Y)){
+    X <- fish[which(fish$capid == Y$capid[i]), ]
+    X$L1 <- min(X$size)
+    X$L2 <- max(X$size)
+    X$tal <- max(X$date) - min(X$date)
+    recapture <- rbind(recapture, X[1,])
+  }
+  # remove duplicate rows
+  recapture <- dplyr::distinct(recapture)
+  
+  # convert tal from days to portions of year
+  recapture$tal <- recapture$tal/365
+  
+  growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.27, lowerK = 0.01, upperK = 1),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
+    sigma2_Linf=list(startsigma2=100,lowersigma2=0.1,uppersigma2=100000),	
+    sigma2_K=list(startsigma2=0.5,lowersigma2=1e-8,uppersigma2=10)) 
+}
 
 
 #### CAN'T use the growth because don't have ages and can't use year caught as a proxy for age ###
