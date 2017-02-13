@@ -16,8 +16,7 @@ fish$anem_table_id <- NULL
 fish$dive_table_id <- NULL
 fish$date <- as.Date(fish$date)
 
-
-
+# eliminate fish for which there are incomplete data
 fish$capid[is.na(fish$size)] # should be 1, 9
 fish$capid[fish$capid == 1] <- NA
 fish$capid[fish$capid == 9] <- NA
@@ -29,27 +28,21 @@ for(i in 1:nrow(fish)){
   X <- fish[which(fish$capid == fish$capid[i]), ]
   X$L1 <- min(X$size)
   X$L2 <- max(X$size)
-  X$tal <- max(X$age) - min(X$age)
+  X$tal <- max(X$date) - min(X$date)
   recapture <- rbind(recapture, X[1,])
 }
 
 # remove duplicate rows
 recapture <- dplyr::distinct(recapture)
 
-# select only the pertinent columns
-calc <- recapture[ , c("L1", "L2", "tal")]
-
-# which(calc$L2 > calc$L1) # verify that all second recaptures are larger than initial captures
-
-growhamp(L1 = calc$L1, L2 = calc$L2, TAL = calc$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.27, lowerK = 0.01, upperK = 1), models=c(1,2,3),
-  method=c("Nelder-Mead","Nelder-Mead","L-BFGS-B"),
-  varcov=c(TRUE,TRUE,TRUE),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
-  sigma2_Linf=list(startsigma2=100,lowersigma2=0.1,uppersigma2=100000),	
-  sigma2_K=list(startsigma2=0.5,lowersigma2=1e-8,uppersigma2=10))
+# convert tal from days to portions of year
+recapture$tal <- recapture$tal/365
 
 growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.27, lowerK = 0.01, upperK = 1),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
   sigma2_Linf=list(startsigma2=100,lowersigma2=0.1,uppersigma2=100000),	
   sigma2_K=list(startsigma2=0.5,lowersigma2=1e-8,uppersigma2=10))
+
+
 
 
 #### CAN'T use the growth because don't have ages and can't use year caught as a proxy for age ###
