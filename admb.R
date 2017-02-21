@@ -5,10 +5,16 @@ library(fishmethods)
 # try it with our data
 source("conleyte.R")
 leyte <- conleyte()
+
+# get date and site
 dive <- leyte %>% tbl("diveinfo") %>% select(id, date, name) %>% collect()
+
+# connect date and site to anem obs
 anem <- leyte %>% tbl("anemones") %>% select(dive_table_id, anem_table_id) %>% collect()
 anem <- left_join(anem, dive, by = c("dive_table_id" = "id"))
 rm(dive)
+
+# connect fish to date and site
 fish <- leyte %>% tbl("clownfish") %>% filter(!is.na(capid)) %>% select(capid, size, sample_id, anem_table_id) %>% collect()
 fish <- left_join(fish, anem, by = "anem_table_id")
 rm(anem)
