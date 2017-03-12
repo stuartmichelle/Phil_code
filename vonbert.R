@@ -47,6 +47,8 @@ grow <- growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf
   sigma2_Linf=list(startsigma2=100,lowersigma2=0.1,uppersigma2=100000),	
   sigma2_K=list(startsigma2=0.5,lowersigma2=1e-8,uppersigma2=10))
 
+write.csv(grow$results, file = "grow_results.csv")
+
 # now plot it 
 
 # rename columns for growthTraject function
@@ -61,7 +63,7 @@ grow <- growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf
 #   In log(1 - lentag/Linf) : NaNs produced
 
 
-growthTraject(grow$results[1,3], grow$results[1,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Faber Growth trajectories and fitted curve, K=1.13, Linf = 10.48")
+# growthTraject(grow$results[1,3], grow$results[1,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Faber Growth trajectories and fitted curve, K=1.13, Linf = 10.48")
 # Error in plot.window(...) : need finite 'xlim' values
 # In addition: Warning message:
 #   In log(1 - lentag/Linf) : NaNs produced
@@ -87,6 +89,26 @@ growthTraject(grow$results[5,3], grow$results[5,2], lentag = recapture$L1, lenre
 growthTraject(grow$results[6,3], grow$results[6,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Sainsbury with ME trajectories and fitted curve, K=1.38, Linf=18.21")
 
 growthTraject(grow$results[7,3], grow$results[7,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Sainsbury with ME & RLE trajectories and fitted curve, K=1.38, Linf=18.21")
+
+
+# create an L1L2 file for BET-grow in admb
+lens <- recapture[ , c("L1", "L2")]
+
+msg1 <- c("#init_int numLenShObs")
+msg2 <- nrow(lens)
+msg3 <- c("# init_matrix LenShDat(1,numLenShObs,1,2)")
+
+# have to convert the data to a tab separated vector or else every line will have msg1, msg2, etc.
+L1 <- vector()
+for (i in 1:nrow(lens)){
+  L1[i] <- paste(lens$L1[i], lens$L2[i], sep = "  ")
+}
+
+out <- c(msg1, msg2, msg3, L1)
+
+write.table(out, file = paste("admb/",Sys.Date(), "L1L2.tsv", sep = ""), row.names=FALSE, quote=FALSE, col.names=FALSE) # won't let me use header=FALSE - use col.names instead of header
+
+
 
 
 
