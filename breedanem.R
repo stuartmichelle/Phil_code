@@ -58,8 +58,8 @@ write.csv(sites, file = paste(Sys.Date(), "anems_by_site.csv", sep = ""), row.na
 
 # for the sites where we do more than one dive, fill in the number of dives you want to do in the rep list (for example, to do 6 dives at Palanas <- rep("Palanas", 6))
 
-start_date <- "03/13/2017"
-end_date <- "04/20/2017"
+start_date <- "03/14/2017"
+end_date <- "04/21/2017"
 # no_dive_dates <- NULL # days off ex: "06/17/2016"
 agenda <- as.character(rep(sites$site, sites$dives))
 
