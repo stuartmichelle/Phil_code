@@ -1,29 +1,30 @@
 # test the growth features of the fishmethods package
 
 library(fishmethods)
-
-# try it with our data
 source("conleyte.R")
+source("datefish.R")
+
+# get a list of recaptured fish
 leyte <- conleyte()
-dive <- leyte %>% tbl("diveinfo") %>% select(id, date, name) %>% collect()
-anem <- leyte %>% tbl("anemones") %>% select(dive_table_id, anem_table_id) %>% collect()
-anem <- left_join(anem, dive, by = c("dive_table_id" = "id"))
-rm(dive)
 fish <- leyte %>% tbl("clownfish") %>% filter(!is.na(capid)) %>% select(capid, size, sample_id, anem_table_id) %>% collect()
-fish <- left_join(fish, anem, by = "anem_table_id")
-rm(anem)
+
+# attach dates
+date <- datefish(fish$anem_table_id)
+date$date <- as.Date(date$date)
+fish <- left_join(fish, date, by = "anem_table_id")
+
+rm(date)
 fish$anem_table_id <- NULL
 fish$dive_table_id <- NULL
-fish$date <- as.Date(fish$date)
-
-# eliminate fish for which there are incomplete data
-fish$capid[is.na(fish$size)] # should be 1, 9
-fish$capid[fish$capid == 1] <- NA
-fish$capid[fish$capid == 9] <- NA
-fish <- fish[!is.na(fish$capid), ]
-
-# remove the elementary school fish from the analysis because it was caught twice in the same day
-fish <- fish[fish$name != "Elementary School", ]
+# 
+# # eliminate fish for which there are incomplete data
+# fish$capid[is.na(fish$size)] # should be 1, 9
+# fish$capid[fish$capid == 1] <- NA
+# fish$capid[fish$capid == 9] <- NA
+# fish <- fish[!is.na(fish$capid), ]
+# 
+# # remove the elementary school fish from the analysis because it was caught twice in the same day
+# fish <- fish[fish$name != "Elementary School", ]
 
 # populate an L1 and L2, and TAL column for recaptured fish
 recapture <- data.frame()
@@ -43,11 +44,12 @@ recapture <- dplyr::distinct(recapture)
 # convert tal from days to portions of year
 recapture$tal <- recapture$tal/365
 
-grow <- growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.27, lowerK = 0.01, upperK = 1),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
+# K originally 0.27 (from fishbase), now using admb output of 0.0379 - doesn't help 
+grow <- growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.0379, lowerK = 0.01, upperK = 1),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
   sigma2_Linf=list(startsigma2=100,lowersigma2=0.1,uppersigma2=100000),	
   sigma2_K=list(startsigma2=0.5,lowersigma2=1e-8,uppersigma2=10))
 
-write.csv(grow$results, file = "grow_results.csv")
+write.csv(grow$results, file = paste(Sys.Date(), "grow_results.csv", sep = ""))
 
 # now plot it 
 
@@ -63,13 +65,13 @@ write.csv(grow$results, file = "grow_results.csv")
 #   In log(1 - lentag/Linf) : NaNs produced
 
 
-# growthTraject(grow$results[1,3], grow$results[1,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Faber Growth trajectories and fitted curve, K=1.13, Linf = 10.48")
+growthTraject(grow$results[1,3], grow$results[1,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Faber Growth trajectories and fitted curve, K=1.13, Linf = 10.48")
 # Error in plot.window(...) : need finite 'xlim' values
 # In addition: Warning message:
 #   In log(1 - lentag/Linf) : NaNs produced
 
-### Because Faber has the smallest AIC, change Linf to 11.1 and it will plot...
-growthTraject(grow$results[1,3], 11.1, lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Faber Growth trajectories and fitted curve, K=1.13, Linf = 11.1")
+# ### Because Faber has the smallest AIC, change Linf to 11.1 and it will plot...
+# growthTraject(grow$results[1,3], 11.1, lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Faber Growth trajectories and fitted curve, K=1.13, Linf = 11.1")
 
 
 growthTraject(grow$results[2,3], grow$results[2,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, main = "Kirkwood & Somers Growth trajectories and fitted curve, K=46.74, Linf=9.2")
