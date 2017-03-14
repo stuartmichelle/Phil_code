@@ -24,20 +24,25 @@ site <- sitefish(fish$anem_table_id)
 site$dive_table_id <- NULL # remove column so it is not duplicated in the join 
 fish <- left_join(fish, site, by = "anem_table_id")
 
-rm(date, site, tags)
+rm(date, site, tags, leyte)
 fish$anem_table_id <- NULL
 fish$dive_table_id <- NULL
 
 # deal with empty value cells
 # is.na(fish) <- "0" # this doesn't work, NAs stay NA, also using 0 doesn't work.
 # fish$capid[1] <- "0" # that worked
-fish$capid[is.na(fish$capid)] <- "0" # that worked
-fish$recap[is.na(fish$recap)] <- "0" # that worked
-fish$tagid[is.na(fish$tagid)] <- "0" # that worked
-fish$size[is.na(fish$size)] <- "0" # that worked
-fish$sample_id[is.na(fish$sample_id)] <- "0" # that worked
-fish$name[is.na(fish$name)] <- "0" # that worked
-fish$date[is.na(fish$date)] <- "1901-01-01" # that worked
+fish$capid[is.na(fish$capid)] <- "0" 
+fish$recap[is.na(fish$recap)] <- "0" 
+fish$tagid[is.na(fish$tagid)] <- "0" 
+fish$size[is.na(fish$size)] <- "0" 
+fish$sample_id[is.na(fish$sample_id)] <- "0"
+fish$name[is.na(fish$name)] <- "0"
+fish$date[is.na(fish$date)] <- "1901-01-01"
+
+# remove samples with missing sizes or dates because we can't calculate growth for those
+fish$capid[which(fish$size == 0)] <- NA
+fish$capid[which(fish$date == "1901-01-01")] <- NA
+fish <- fish[!is.na(fish$capid), ]
 
 # remove fish that were caught on the same date
 datedif <- data.frame()
@@ -45,26 +50,55 @@ dates <- unique(fish$date) # create a list of all of the dates in the fish table
 for(i in 1:length(dates)){
     X <- fish[which(fish$date == dates[i]), ]
     Y <- X[X$capid != 0, ]
-    Y <- distinct(Y) # now we have a table of fish with capids that are not duplicated
+    Y <- Y %>% distinct(capid) # now we have a table of fish with capids that are not duplicated
     Z <- X[X$tagid != 0 & X$capid == 0, ]
-    Z <- distinct(Z) # now we have another table of fish with tagids that are not duplicated
+    Z <- Z %>% distinct(tagid) # now we have another table of fish with tagids that are not duplicated
     datedif <- rbind(datedif, Y, Z)
 }
 
-# populate an L1 and L2, and TAL column for recaptured fish
+rm(X, Y, Z, dates, i)
+
+# populate an L1 and L2, and TAL column for geno recaptured fish
 recapture <- data.frame()
-for(i in 1:nrow(fish)){
-  X <- fish[which(fish$capid == fish$capid[i]), ]
-  X$L1 <- min(X$size)
-  X$L2 <- max(X$size)
-  X$T1 <- min(X$date)
-  X$T2 <- max(X$date)
-  X$tal <- max(X$date) - min(X$date)
-  recapture <- rbind(recapture, X[1,])
+X <- datedif[datedif$capid !=0, ] # create a list of all capids that are not 0
+caps <- unique(X$capid)
+for(i in 1:length(caps)){
+  X <- datedif[which(datedif$capid == caps[i]), ]
+  if (nrow(X) > 1){
+    X$L1 <- min(X$size)
+    X$L2 <- max(X$size)
+    X$T1 <- min(X$date)
+    X$T2 <- max(X$date)
+    X$tal <- max(X$date) - min(X$date)
+    recapture <- rbind(recapture, X[1,])
+  }
+}
+
+rm(X, caps, i)
+
+# add in samples that are tag recaptures
+X <- datedif[datedif$tagid != 0 & datedif$capid == 0, ] # create a list of tag recaptures that are not in the capid table
+tags <- unique(X$tagid)
+for(i in 1:length(tags)){
+  X <- datedif[which(datedif$tagid == tags[i]), ]
+  if (nrow(X) > 1){
+    X$L1 <- min(X$size)
+    X$L2 <- max(X$size)
+    X$T1 <- min(X$date)
+    X$T2 <- max(X$date)
+    X$tal <- max(X$date) - min(X$date)
+    recapture <- rbind(recapture, X[1,])
+  }
 }
 
 # remove duplicate rows
 recapture <- dplyr::distinct(recapture)
+
+
+# fix table formatting
+recapture$L1 <- as.numeric(recapture$L1)
+recapture$L2 <- as.numeric(recapture$L2)
+
 
 # convert tal from days to fraction of year
 recapture$tal <- recapture$tal/365
@@ -79,9 +113,18 @@ write.csv(grow$results, file = paste(Sys.Date(), "grow_results.csv", sep = ""))
 # now plot it 
 
 # rename columns for growthTraject function
-names(recapture) <- c("capid", "size", "sample_id", "date", "lentag", "lenrec", "T1", "T2", "timelib")
+names(recapture) <- c("capid", "recap", "tagid", "size", "sample_id", "date", "site", "lentag", "lenrec", "T1", "T2", "timelib")
 
-# growthTraject(0.19,97.5,lentag=temp$L1, lenrec=temp$L2,timelib=c(temp$T2-temp$T1)) # had to remove the elementary school fish in order to get this to work without the timelib is numeric and not >0
+# 3/14/2017 I'm getting error messages that Error: is.numeric(lentag) && all(lentag > 0) is not TRUE even though both of those statements are TRUE if I run them, going to simplify the table to see if that helps
+recapture$capid <- NULL
+recapture$recap <- NULL
+recapture$tagid <- NULL
+recapture$size <- NULL
+recapture$sample_id <- NULL
+recapture$date <- NULL
+
+
+growthTraject(0.19,97.5,lentag=recapture$lentag, lenrec=recapture$lenrec,timelib=recapture$timelib) # had to remove the elementary school fish in order to get this to work without the timelib is numeric and not >0
 
 # growthTraject(grow$results[1,3], grow$results[1,2], lentag = recapture$L1, lenrec = recapture$L2, timelib = recapture$tal, , main = "Growth Trajectories and Fitted Curve", cex.lab=1.5, cex.axis=1.5, cex.main=1,xlab="Relative age, yr", ylab="Length, cm",xlim=NULL, ylim=NULL,ltytraject=1, lwdtraject=1,coltraject=1, ltyvonB=1, lwdvonB=2, colvonB="red",  returnvec=FALSE, returnlimits=FALSE, warn=TRUE)
 
