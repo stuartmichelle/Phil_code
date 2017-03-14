@@ -3,19 +3,48 @@
 library(fishmethods)
 source("conleyte.R")
 source("datefish.R")
+source("sitefish.R")
 
 # get a list of recaptured fish
 leyte <- conleyte()
-fish <- leyte %>% tbl("clownfish") %>% filter(!is.na(capid)) %>% select(capid, size, sample_id, anem_table_id) %>% collect()
+fish <- leyte %>% tbl("clownfish") %>% filter(!is.na(capid) | recap == "Y") %>% select(capid, recap, tagid, size, sample_id, anem_table_id) %>% collect()
+
+# get the first capture of tag recaptured fish
+tags <- leyte %>% tbl("clownfish") %>% filter(tagid %in% fish$tagid) %>% select(capid, recap, tagid, size, sample_id, anem_table_id) %>% collect()
+tags$tagid <- as.character(tags$tagid)
+fish <- rbind(fish, tags)
 
 # attach dates
 date <- datefish(fish$anem_table_id)
 date$date <- as.Date(date$date)
 fish <- left_join(fish, date, by = "anem_table_id")
 
-rm(date)
+# attach sites
+site <- sitefish(fish$anem_table_id)
+site$dive_table_id <- NULL # remove column so it is not duplicated in the join 
+fish <- left_join(fish, site, by = "anem_table_id")
+
+rm(date, site, tags)
 fish$anem_table_id <- NULL
 fish$dive_table_id <- NULL
+
+# deal with empty value cells
+# is.na(fish) <- "0" # this doesn't work, NAs stay NA, also using 0 doesn't work.
+# fish$capid[1] <- "0" # that worked
+fish$capid[is.na(fish$capid)] <- "0" # that worked
+
+
+# remove fish that were caught on the same date
+for(i in 1:nrow(fish)){
+    X <- fish[which(fish$date == fish$date[i])]
+    Y <- X[duplicated(X$capid), ]
+    
+    
+  }  
+  }
+  
+
+
 # 
 # # eliminate fish for which there are incomplete data
 # fish$capid[is.na(fish$size)] # should be 1, 9
@@ -41,11 +70,11 @@ for(i in 1:nrow(fish)){
 # remove duplicate rows
 recapture <- dplyr::distinct(recapture)
 
-# convert tal from days to portions of year
+# convert tal from days to fraction of year
 recapture$tal <- recapture$tal/365
 
-# K originally 0.27 (from fishbase), now using admb output of 0.0379 - doesn't help 
-grow <- growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.0379, lowerK = 0.01, upperK = 1),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
+# K originally 0.27 (from fishbase), using admb output of 0.0379 - doesn't help 
+grow <- growhamp(L1 = recapture$L1, L2 = recapture$L2, TAL = recapture$tal, Linf = list(startLinf = 15.9, lowerLinf = 13.4, upperLinf = 18.9), K = list(startK = 0.27, lowerK = 0.01, upperK = 1),sigma2_error=list(startsigma2=100,lowersigma2=0.1,uppersigma2=10000),
   sigma2_Linf=list(startsigma2=100,lowersigma2=0.1,uppersigma2=100000),	
   sigma2_K=list(startsigma2=0.5,lowersigma2=1e-8,uppersigma2=10))
 
@@ -54,7 +83,7 @@ write.csv(grow$results, file = paste(Sys.Date(), "grow_results.csv", sep = ""))
 # now plot it 
 
 # rename columns for growthTraject function
-# names(recapture) <- c("capid", "size", "sample_id", "date", "name", "lentag", "lenrec", "timelib")
+names(recapture) <- c("capid", "size", "sample_id", "date", "lentag", "lenrec", "T1", "T2", "timelib")
 
 # growthTraject(0.19,97.5,lentag=temp$L1, lenrec=temp$L2,timelib=c(temp$T2-temp$T1)) # had to remove the elementary school fish in order to get this to work without the timelib is numeric and not >0
 
