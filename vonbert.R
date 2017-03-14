@@ -32,17 +32,26 @@ fish$dive_table_id <- NULL
 # is.na(fish) <- "0" # this doesn't work, NAs stay NA, also using 0 doesn't work.
 # fish$capid[1] <- "0" # that worked
 fish$capid[is.na(fish$capid)] <- "0" # that worked
-
+fish$recap[is.na(fish$recap)] <- "0" # that worked
+fish$tagid[is.na(fish$tagid)] <- "0" # that worked
+fish$size[is.na(fish$size)] <- "0" # that worked
+fish$sample_id[is.na(fish$sample_id)] <- "0" # that worked
+fish$name[is.na(fish$name)] <- "0" # that worked
+fish$date[is.na(fish$date)] <- "1901-01-01" # that worked
 
 # remove fish that were caught on the same date
-for(i in 1:nrow(fish)){
-    X <- fish[which(fish$date == fish$date[i])]
-    Y <- X[duplicated(X$capid), ]
-    
-    
-  }  
-  }
-  
+datedif <- data.frame()
+dates <- unique(fish$date) # create a list of all of the dates in the fish table to iterate through
+for(i in 1:length(dates)){
+    X <- fish[which(fish$date == dates[i]), ]
+    Y <- X[X$capid != 0, ]
+    Y <- distinct(Y) # now we have a table of fish with capids that are not duplicated
+    Z <- X[X$tagid != 0 & X$capid == 0, ]
+    Z <- distinct(Z) # now we have another table of fish with tagids that are not duplicated
+    datedif <- rbind(datedif, Y, Z)
+}
+
+# 
 
 
 # 
@@ -52,8 +61,7 @@ for(i in 1:nrow(fish)){
 # fish$capid[fish$capid == 9] <- NA
 # fish <- fish[!is.na(fish$capid), ]
 # 
-# # remove the elementary school fish from the analysis because it was caught twice in the same day
-# fish <- fish[fish$name != "Elementary School", ]
+
 
 # populate an L1 and L2, and TAL column for recaptured fish
 recapture <- data.frame()
