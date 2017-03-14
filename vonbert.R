@@ -51,18 +51,6 @@ for(i in 1:length(dates)){
     datedif <- rbind(datedif, Y, Z)
 }
 
-# 
-
-
-# 
-# # eliminate fish for which there are incomplete data
-# fish$capid[is.na(fish$size)] # should be 1, 9
-# fish$capid[fish$capid == 1] <- NA
-# fish$capid[fish$capid == 9] <- NA
-# fish <- fish[!is.na(fish$capid), ]
-# 
-
-
 # populate an L1 and L2, and TAL column for recaptured fish
 recapture <- data.frame()
 for(i in 1:nrow(fish)){
